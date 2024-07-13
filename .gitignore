@@ -1,3 +1,11 @@
+src/main.cpp
+test/*
+lib/*
+platformio.ini
+.vscode/*
+.pio*
+
+
 # Prerequisites
 *.d
 
