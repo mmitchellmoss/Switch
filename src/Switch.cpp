@@ -2,28 +2,22 @@
 
 namespace M3 {
 
-    // Constructor. Loads the pin connected to the switch.
     Switch::Switch(int highOrLow, int pin) {
         setHighOrLow(highOrLow);
         m_switchPin = pin;
     }
 
-    // Constructor. Loads the pin connect to the switch and the desired debounce delay.
     Switch::Switch(int highOrLow, int pin, int debounceDelay) {
         setHighOrLow(highOrLow);
         m_switchPin = pin;
         m_debounceDelay = debounceDelay;
     }
 
-    // Function to configure the object as being a high or low activated switch.
     void Switch::setHighOrLow(int highOrLow) {
-        // If we get a HIGH value then configure the object for high activation.
         if (highOrLow == HIGH) {
             m_currentState = LOW;
             m_lastState = LOW;
             m_pressedState = HIGH;
-
-        // Otherwise, for anything else configure it for low activation.
         } else {
             m_currentState = HIGH;
             m_lastState = HIGH;
@@ -33,25 +27,28 @@ namespace M3 {
 
 
 
-    // Function used to return if the related switch is pressed or not. It contains all debounce logic.
     bool Switch::isSwitchPressed() {
 
-        int readState = digitalRead(m_switchPin);           // Current state as of this function call.
-        unsigned long currentMillis = millis();             // Current millis() counter as of this function call.
-        bool ret = false;                                   // Return value
+        int readState = digitalRead(m_switchPin);           
+        unsigned long currentMillis = millis();             
+        bool ret = false;                                   
 
-        // If the state changed then there was switch activity, so start the debounce timer.
+        // Whenever the state is changing, then the switch contacts have changed or are bouncing. 
+        // As long as the state changes, keep resetting the debouce timer. We need a full debounce 
+        // delay of unchanging state to occur before we move into the following logic areas.
         if (readState != m_lastState) {
             m_debounceTimer = currentMillis;
         }
 
-        // See if the debounce delay has passed.
+        // The state is steady, so we can actually evaluate the switch.
         if ((currentMillis - m_debounceTimer) >= m_debounceDelay) {
-            // See if the switch state has changed.
+            // A state change must have happened for us to move farther into the check. In other words if we had
+            // already reported a switch press then we are not going to do it again. You would have to re-press the
+            // switch to get a possible true return again. We are looking for transitions to pressed, not steady press and hold.
             if (readState != m_currentState) {
                 m_currentState = readState;
                 
-                // Return true only if the mode switch is still pressed.
+                // Return true only if the mode switch is in whatever state we consider to be pressed.
                 if (m_currentState == m_pressedState) {
                     ret = true; 
                 }
